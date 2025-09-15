@@ -1,0 +1,12 @@
+# Python virtual environment
+deep-stega_env/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS-specific files
+.DS_Store
+Thumbs.db
