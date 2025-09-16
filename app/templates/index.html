@@ -4,8 +4,83 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tampilan Utama</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .tabs button { padding: 10px; cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        .flash { color: red; }
+    </style>
 </head>
 <body>
-    <h1>Tampilan awal</h1>
+    <h1>Implementasi Steganografi Video</h1>
+    
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <div class="flash">
+          {% for message in messages %}
+            <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="tabs">
+        <button onclick="openTab(event, 'Encoder')">Encoder</button>
+        <button onclick="openTab(event, 'Decoder')">Decoder</button>
+    </div>
+
+    <div id="Encoder" class="tab-content active">
+        <h2>Encode Data</h2>
+        <form action="/encode" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="cover_video">1. Pilih Video Sampul (.mp4):</label>
+                <input type="file" name="cover_video" accept="video/mp4" required>
+            </div>
+            <div class="form-group">
+                <label for="secret_images">2. Pilih Gambar Rahasia (1-5 gambar):</label>
+                <input type="file" name="secret_images" accept="image/*" multiple required>
+            </div>
+            <div class="form-group">
+                <label for="frame_position">3. Posisi Frame untuk Penyisipan:</label>
+                <input type="number" name="frame_position" min="1" required>
+            </div>
+            <button type="submit">Mulai Encoding</button>
+        </form>
+    </div>
+
+    <div id="Decoder" class="tab-content">
+        <h2>Decode Data</h2>
+        <form action="/decode" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="stego_video">1. Pilih Video Stego (.mp4):</label>
+                <input type="file" name="stego_video" accept="video/mp4" required>
+            </div>
+            <div class="form-group">
+                <label for="frame_position_decode">2. Posisi Frame yang Digunakan:</label>
+                <input type="number" name="frame_position_decode" min="1" required>
+            </div>
+             <div class="form-group">
+                <label for="num_secrets_decode">3. Jumlah Gambar yang Diekstrak:</label>
+                <input type="number" name="num_secrets_decode" min="1" max="5" required>
+            </div>
+            <button type="submit">Mulai Decoding</button>
+        </form>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            document.getElementById(tabName).style.display = "block";
+        }
+        // Set default tab
+        document.querySelector('.tabs button').click();
+    </script>
 </body>
 </html>

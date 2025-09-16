@@ -4,8 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tampilan Hasil</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: auto; padding: 20px; }
+        video, img { max-width: 100%; border: 1px solid #ccc; margin-top: 10px; }
+        .image-gallery { display: flex; flex-wrap: wrap; gap: 10px; }
+        .image-gallery img { width: 150px; height: 150px; object-fit: cover; }
+    </style>
 </head>
 <body>
-    <h1>tampilan hasil</h1>
+    <h1>Hasil Proses</h1>
+
+    {% if mode == 'encode' %}
+        <h2>Encoding Berhasil!</h2>
+        <p>Video stego Anda telah berhasil dibuat. Simpan video ini dan gunakan nomor frame berikut untuk proses decoding.</p>
+        <p><strong>Posisi Frame: {{ frame_position }}</strong></p>
+        <video controls>
+            <source src="{{ stego_video_url }}" type="video/mp4">
+            Browser Anda tidak mendukung tag video.
+        </video>
+    {% elif mode == 'decode' %}
+        <h2>Decoding Berhasil!</h2>
+        <p>Berikut adalah gambar-gambar rahasia yang berhasil diekstrak:</p>
+        <div class="image-gallery">
+            {% for image_url in revealed_images %}
+                <img src="{{ image_url }}" alt="Revealed Image">
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <br><br>
+    <a href="/">Kembali ke Halaman Utama</a>
 </body>
 </html>
