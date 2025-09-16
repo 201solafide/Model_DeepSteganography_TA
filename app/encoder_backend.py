@@ -1,12 +1,10 @@
+# app/encoder_backend.py
+
 import torch
 import cv2
 from torchvision import transforms
 from PIL import Image
 import os
-from models.stego_encoder_decoder import StegoEncoderDecoder
-from utils.video_utils import extract_frame, replace_frame
-
-# Impor dengan path yang benar relatif terhadap root proyek
 from models.stego_encoder_decoder import StegoEncoderDecoder
 from utils.video_utils import extract_frame, replace_frame
 
@@ -26,12 +24,12 @@ def process_encoding(video_path, secret_image_paths, frame_position):
     model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
     model.eval()
 
-    # 2. Ekstrak frame dari video
+    # Ekstrak frame dari video
     cover_frame_pil = extract_frame(video_path, frame_position)
     if cover_frame_pil is None:
         raise ValueError(f"Frame pada posisi {frame_position} tidak dapat diekstrak.")
 
-    # 3. Pra-pemrosesan gambar
+    # Pra-pemrosesan gambar
     transform = transforms.Compose([
         transforms.Resize((448, 448)),
         transforms.ToTensor(),
@@ -50,16 +48,20 @@ def process_encoding(video_path, secret_image_paths, frame_position):
     
     secrets_tensor = torch.stack(secrets_list, dim=1).to(device)
 
-    # 4. Jalankan proses encoding
+    # Jalankan proses encoding
     with torch.no_grad():
-        stego_tensor = model.encoder(cover_tensor, secrets_tensor)
+        stego_tensor, _ = model(cover_tensor, secrets_tensor) # Model utama mengembalikan stego dan revealed
 
-    # 5. Pasca-pemrosesan stego frame
+    # Pasca-pemrosesan stego frame
     stego_frame_pil = transforms.ToPILImage()(stego_tensor.squeeze(0).cpu())
 
-    # 6. Gantikan frame di video dan simpan video baru
+    # Gantikan frame di video dan simpan video baru
     output_video_filename = f"stego_{os.path.basename(video_path)}"
-    output_video_path = os.path.join("app", "static", "results", output_video_filename)
+    # --- PERBAIKAN PATH ---
+    # Path penyimpanan harus absolut agar konsisten
+    results_dir = os.path.join(os.path.dirname(__file__), 'static', 'results')
+    output_video_path = os.path.join(results_dir, output_video_filename)
+    # -----------------------
     
     replace_frame(video_path, stego_frame_pil, frame_position, output_video_path)
     

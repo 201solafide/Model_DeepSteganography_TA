@@ -1,12 +1,9 @@
+# app/decoder_backend.py
+
 import torch
 from torchvision import transforms
 from PIL import Image
 import os
-from models.stego_encoder_decoder import StegoEncoderDecoder
-from utils.video_utils import extract_frame
-import torch
-
-# Impor dengan path yang benar relatif terhadap root proyek
 from models.stego_encoder_decoder import StegoEncoderDecoder
 from utils.video_utils import extract_frame
 
@@ -25,29 +22,31 @@ def process_decoding(stego_video_path, frame_position, num_secrets):
     model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
     model.eval()
 
-    # 2. Ekstrak stego frame dari video
+    # Ekstrak stego frame dari video
     stego_frame_pil = extract_frame(stego_video_path, frame_position)
     if stego_frame_pil is None:
         raise ValueError(f"Frame pada posisi {frame_position} tidak dapat diekstrak.")
 
-    # 3. Pra-pemrosesan stego frame
+    # Pra-pemrosesan stego frame
     transform = transforms.Compose([
         transforms.Resize((448, 448)),
         transforms.ToTensor(),
     ])
     stego_tensor = transform(stego_frame_pil).unsqueeze(0).to(device)
 
-    # 4. Jalankan proses decoding
+    # Jalankan proses decoding
     with torch.no_grad():
-        revealed_tensors = model.decoder(stego_tensor)
+        _, revealed_tensors = model(stego_tensor, torch.zeros(1, num_secrets, 3, 64, 64).to(device)) # Beri input dummy untuk secrets
 
-    # 5. Simpan gambar hasil ekstraksi
-    output_image_paths = []
+    # Simpan gambar hasil ekstraksi
+    output_image_filenames = []
+    results_dir = os.path.join(os.path.dirname(__file__), 'static', 'results') # Definisikan path absolut
+    
     for i, tensor in enumerate(revealed_tensors):
-        revealed_img = transforms.ToPILImage()(tensor.squeeze(0).cpu())
+        revealed_img = transforms.ToPILImage()(tensor.cpu())
         filename = f"revealed_{frame_position}_{i+1}.png"
-        save_path = os.path.join("app", "static", "results", filename)
+        save_path = os.path.join(results_dir, filename)
         revealed_img.save(save_path)
-        output_image_paths.append(filename)
+        output_image_filenames.append(filename)
         
-    return output_image_paths
+    return output_image_filenames
